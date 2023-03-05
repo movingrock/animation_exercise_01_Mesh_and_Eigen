@@ -65,6 +65,7 @@ MatrixXf faceVertex;
 bool faceWithGapMesh = true;
 bool useFaceNormal = true;
 float gap = 0.1f;
+bool hello = false;
 
 int main(int argc, char* argv[]) {
 	// Mesh filename
@@ -174,7 +175,27 @@ void drawMesh() {
 	for (int i = 0; i < face.cols(); i++) {
 		glNormal3fv(vertexNormal.col(face(0, i)).data());
 		glVertex3fv(vertex.col(face(0, i)).data());
-		
+
+		glNormal3fv(vertexNormal.col(face(1, i)).data());
+		glVertex3fv(vertex.col(face(1, i)).data());
+
+		glNormal3fv(vertexNormal.col(face(2, i)).data());
+		glVertex3fv(vertex.col(face(2, i)).data());
+	}
+	glEnd();
+}
+
+// Draw a mesh after setting up its material
+void drawWire() {
+	// Material
+	setupColoredMaterial(Vector3f(0.0f, 0.0f, 0.0f));
+
+	// Mesh
+	glBegin(GL_TRIANGLES);
+	for (int i = 0; i < face.cols(); i++) {
+		glNormal3fv(vertexNormal.col(face(0, i)).data());
+		glVertex3fv(vertex.col(face(0, i)).data());
+
 		glNormal3fv(vertexNormal.col(face(1, i)).data());
 		glVertex3fv(vertex.col(face(1, i)).data());
 
@@ -187,7 +208,7 @@ void drawMesh() {
 // Draw shrunken faces
 void drawShrunkenFaces() {
 	// Material
-	setupColoredMaterial(Vector3f(0.95f, 0.95f, 0.95f));
+	setupColoredMaterial(Vector3f(0.45f, 0.95f, 0.95f));
 
 	// Mesh
 	glBegin(GL_TRIANGLES);
@@ -260,7 +281,27 @@ void render(GLFWwindow* window) {
 
 	// Draw the mesh after setting up the material
 	if (faceWithGapMesh) drawShrunkenFaces();
-	else drawMesh();
+	else {
+		// offset setting
+		// faces
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(1.0, 1.0);
+		drawMesh();
+		glDisable(GL_POLYGON_OFFSET_FILL);
+
+		// shrunken faces
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(-2.0, 1.0);
+		drawShrunkenFaces();
+		glDisable(GL_POLYGON_OFFSET_FILL);
+
+		// wireframes
+		glLineWidth(2);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		drawWire();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 }
 
 // Material
@@ -326,6 +367,8 @@ void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
 			// Axes on/off
 		case GLFW_KEY_X: axes = !axes; break;
+
+		case GLFW_KEY_H: hello = !hello; break;
 		}
 	}
 }
